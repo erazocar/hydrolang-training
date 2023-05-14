@@ -1,6 +1,6 @@
 {
   "label": "Tutorial",
-  "position": 4,
+  "position": 3,
   "link": {
     "type": "generated-index",
     "description": "Let's explore each of the modules of HydroLang and much more."

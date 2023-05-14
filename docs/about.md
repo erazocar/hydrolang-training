@@ -19,9 +19,11 @@ This lesson serves as an entry point to **HydroLang**, a library with a modular 
 
 ## Syllabus
 
-- **[Introduction](../docs/intro.md)**: Learn about the HydroLang modules, architecture, and open-source nature.
+- **[Introduction](../docs/intro.mdx)**: Learn about the HydroLang modules, architecture, and open-source nature.
 - **[Data](../docs/tutorial/data.mdx)**: Learn about the data functionality, data sources, and transformation functions.
 - **[Visualize](../docs/tutorial/visualize)**: Learn about the visualize module for graphs and charts.
 - **[Maps](../docs/tutorial/maps)**: Learn about the map module for data visualization.
-- **[Analyze](../docs/tutorial/analyze/)**: Learn about the analyze module composed of three components: hydro, stats, and nn (machine learning).
-- **Other projects**: HydroLang-ML and HydroLang-BMI.
+- **[Analyze](../docs/tutorial/analyze/hydro.mdx)**: Learn about the analyze module composed of three components: hydro, stats, and nn (machine learning).
+- **[Case Study 1](../docs/tutorial/case-study1.mdx)**: Learn to create a data visualizatio dashboard using HydroLang.
+- **[Case Study 2](../docs/tutorial/case-study2.mdx)**: Learn about how to couple web-based client side models using the BMI.
+- **[Other projects](../docs/other_projects.md)**: HydroLang-ML and HydroLang-BMI.
