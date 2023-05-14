@@ -1,0 +1,132 @@
+---
+sidebar_position: 3
+---
+
+import { Sandpack } from "@codesandbox/sandpack-react";
+
+# NN
+
+The NN component contains functions for creating a feedforward neural network that predicts data from N number of inputs to M number of outputs. It is powered by the TensorFlow.js library, which aids in development through its straightforward interface.
+
+If the NN component is not available, we can create a HydroLang instance and extract the neural network component from the analyze module for further usage:
+
+```js
+const hydrolang = new Hydrolang();
+const { nn } = hydrolang.analyze;
+```
+
+## Exercise 1
+
+We can now create and train a model that accepts 50 inputs and returns 100 outputs by passing the data through 50 different neurons that map the data accordingly:
+
+```js
+const model = nn.createModel({
+  params: { inputs: 50, neurons: 50,  outputs: 100 }});
+```
+
+:::tip Tip
+Note that we can alter the number of neurons for training purposes, but more does not necessarily mean better. This would be useful for spatio-temporal down and upscaling procedures, such as rainfall disaggregation.
+:::
+
+Next, we can feed the training data using available methods to generate random data within the component and shape it into a machine learning system structure:
+
+```js
+const { inputs, outputs, outputMin, outputMax } = nn.convertToTensor({
+  data: {
+    inputSet: stats.generateRandomData(50),
+    outputSet: stats.generateRandomData(100)}});
+```
+Using JS destructuring, we can obtain the variables for inputs and outputs by declaring them in the format: `{} = functionCall()`. We're now ready to train the model by calling the following method:
+
+```js
+await nn.trainModel({ 
+    params: { model }, 
+    data: { inputs, outputs }});
+```
+
+:::tip Tip
+Experiment with different values for the optional args parameter, such as adjusting the number of epochs, batch size, and validation split to optimize model performance. Additionally, setting the learning rate for the optimizer can also have a significant impact on model training.
+:::
+
+On the screen, we'll see a graph showing fitting parameters, including losses and mean square error. We can use these graphic tools to evaluate whether the parameters we trained our model with are adequate or whether we need to adjust them.
+
+Finally, we can use our trained model to evaluate the model input/outputs by using the following code:
+
+```js
+const pred = nn.prediction({
+  params: { model },
+  args: { outputMin, outputMax },
+  data: nn.generateRandomData(50)});
+```
+
+:::note Note
+You can also save the model for further usage into your local machine using the following:
+```js
+nn.saveModel({
+    params: { model }
+})
+```
+:::
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `const hydrolang = new Hydrolang();
+const {hydro, stats, nn} = hydrolang.analyze;
+const main = async () => {
+  //Paste code here
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+<br></br>
+
+:::tip Tip
+More info about the neural networks component in the [documentation page](https://uihilab.github.io/HydroLang/nn.html)
+:::
+
+
+
+
+
+
+

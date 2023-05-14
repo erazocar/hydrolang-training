@@ -1,0 +1,462 @@
+---
+sidebar_position: 2
+---
+
+import { Sandpack } from "@codesandbox/sandpack-react";
+
+# Hydro
+
+The Hydro component contains functions for implementing simple and advanced hydrological applications, including, but not limited to, rainfall temporal aggregators, synthetic rainfall generators, a simple bucket model, area Thiessen polygon rainfall distribution, and simple static and dynamic groundwater solute solvers. Let’s explore some of these functions.
+
+## Exercise 1
+
+Let's generate some random data for rainfall distribution using the [Thiessen method](https://glossary.ametsoc.org/wiki/Thiessen_polygon_method).
+
+```js
+let dist_rainf = hydro.thiessen({
+  params: { areas: [30, 40, 50, 60] },
+  data: [[1,2,3,4], [1,2], [1,2,3,6,5]]
+});
+```
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `const hydrolang = new Hydrolang();
+const {hydro, stats, nn} = hydrolang.analyze;
+const main = async () => {
+  let dist_rainf = hydro.thiessen({
+    params: { areas: [30, 40, 50, 60] },
+    data: [[1,2,3,4], [1,2], [1,2,3,6,5]]
+  });
+  //hydrolang.visualize.draw({ params: { type: 'json' }, data: dist_rainf})
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+:::note Note
+The function can redistribute rainfall over different areas given as an array. If there are m areas and n rainfall events passed with m > n, then it is assumed that over the m-n areas, there was no rainfall, and new arrays filled with 0s are pushed into the data.
+:::
+
+## Exercise 2
+
+We can create [synthetic information](https://www.engr.colostate.edu/~ramirez/ce_old/classes/ce522_ramirez/snyder/snyder_uh.htm) based on the physical characteristics of a basin to generate unit and flooding hydrographs to determine what would happen during a rainfall event. For example, we can generate retention and concentration values for a basin using:
+
+```js
+let synthetic_times_metric = hydro.syntheticalc({
+  params: { type: "SCS", unit: "m" },
+  args: { l: 1500, slope: 2, cn: 80 },
+});//returns max retention (mm), time of concentration, peak and lag time (hrs)
+```
+
+For this particular calculation, we are considering the following conditions:
+<details><summary>Open to view the available parameters</summary>
+
+|Parameter   |Description   | Units   | Example |
+|---|---|---|
+|`type`   |  The type of hydrologic calculation to perform. | string  | string  |   
+| `unit`  | The unit system to use  | string  |  
+| `l`  | The longitude of the catchment   | meters or feet |
+| `slope` | The average slope of the catchment  | percentage  |   
+| `cn`  | The SCS curve number of the catchment  |  - |
+</details>
+
+The result can be used to construct flooding hydrographs based on a few physical characteristics of the watershed.
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `const hydrolang = new Hydrolang();
+const {hydro, stats, nn} = hydrolang.analyze;
+const main = async () => {
+  let synthetic_times_metric = hydro.syntheticalc({
+    params: { type: "SCS", unit: "m" },
+    args: { l: 1500, slope: 2, cn: 80 },
+  });
+  //hydrolang.visualize.draw({ params: { type: 'json' }, data: synthetic_times_metric})
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+## Exercise 3
+
+Let’s explore creating a [dimensionless unit hydrograph](https://www.nohrsc.noaa.gov/technology/gis/uhg_manual.html) based on a gamma distribution:
+
+```js
+let dimGamma = hydro.dimunithydro({
+  params: { timeStep: 0.1, numhours: 24 },
+  args: { type: "gamma", prf: 238 }
+});
+```
+
+:::note Note
+Pearson Type III and Weibull distributions are also available, given the appropriate arguments.
+:::
+
+With the created dimensionless unit hydrograph, we can construct an empirical unit hydrograph using time of concentration, drainage area, and peak rate factor for a region of interest as follows:
+
+```js
+let myUnitHydro = hydro.unithydrocons({
+  params: {
+    type: "dim", // dimensionless hydrograph
+    units: "si", // SI unit system
+    drainagearea: 50 // drainage area in hectares
+  },
+  args: {
+    peak: 0.92, // peak rate factor
+    tconcentration: 2.5 // time of concentration in hours
+  },
+  data: dimGamma
+});
+```
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `const hydrolang = new Hydrolang();
+const {hydro, stats, nn} = hydrolang.analyze;
+const main = async () => {
+  let dimGamma = hydro.dimunithydro({
+    params: { timeStep: 0.1, numhours: 24 },
+    args: { type: "gamma", prf: 238 }
+  });
+  let myUnitHydro = hydro.unithydrocons({
+    params: {
+      type: "dim", // dimensionless hydrograph
+      units: "si", // SI unit system
+      drainagearea: 50 // drainage area in hectares
+    },
+    args: {
+      peak: 0.92, // peak rate factor
+      tconcentration: 2.5 // time of concentration in hours
+    },
+    data: dimGamma
+  });
+  //hydrolang.visualize.draw({ params: { type: 'chart' }, data: myUnitHydro})
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+:::tip Tip
+The function can also create a unit hydrograph from an observed event if available.
+:::
+
+## Exercise 4
+
+The Hydro component also contains functions for rainfall data manipulation. For example, we can aggregate rainfall time series given a specific interval:
+
+```js
+let agg_rain = hydro.rainaggr({
+  params: { type: 'aggr', interval: 120 },
+  data: [
+    ['2023-05-01 00:00:00', '2023-05-01 01:00:00', '2023-05-01 02:00:00', '2023-05-01 03:00:00'],
+    [10, 20, 5, 30]
+  ]
+});
+```
+:::note Note
+There is also a rainfall disaggregation function implemented within the hydro component which uses either a statistical distribution or a machine learning model trained for specific functions. An example of the latter will be shown in the NN component.
+:::
+
+We can generate a hyetograph for a given duration and timestep, and also provide rainfall data in mm to infer hyetograph intensity in mm/hr (or SI units).
+
+```js
+let hyeto = hydro.hyetogen({ params: {
+  duration: 3600, // duration in seconds
+  timestep: 60 // timestep in seconds
+}
+, data: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]//mm 
+    }); //mm/hr
+```
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `const hydrolang = new Hydrolang();
+const {hydro, stats, nn} = hydrolang.analyze;
+const main = async () => {
+  let agg_rain = hydro.rainaggr({
+    params: { type: 'aggr', interval: 120 },
+    data: [
+      ['2023-05-01 00:00:00', '2023-05-01 01:00:00', '2023-05-01 02:00:00', '2023-05-01 03:00:00'],
+      [10, 20, 5, 30]
+    ]
+  });
+  let hyeto = hydro.hyetogen({ 
+    params: {
+      duration: 3600, // duration in seconds
+      timestep: 60 // timestep in seconds
+    }, 
+    data: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]//mm 
+  });
+  //hydrolang.visualize.draw({ params: { type: 'json' }, data: agg_rain})
+  //hydrolang.visualize.draw({ params: { type: 'json' }, data: hyeto})
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+## Exercise 5
+
+Finally, there is  simple model for runoff in a watershed considering an [empirical bucket](https://www.cpc.ncep.noaa.gov/soilmst/global/) for rainfall, evapotranspiration, and constant baseflow throughout different landscapes. We can use the function to assess impacts on runoff from different land uses.
+
+```js
+let bucket_runoff = hydro.bucketmodel({
+  params: {
+    baseflow: 10, // m³/s
+    infiltration: 0.1 // mm/hour
+  },
+  args: {
+    agriculture: 0.3, // percent
+    barerock: 0.1, // percent
+    grassland: 0.2, // percent
+    forest: 0.3, // percent
+    urban: 0.1 // percent
+  },
+  data: {
+    rainfall: [10, 20, 30, 40, 50], // mm
+    evaporation: [5, 10, 15, 20, 25] // mm
+  }
+});
+```
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `const hydrolang = new Hydrolang();
+const {hydro, stats, nn} = hydrolang.analyze;
+const main = async () => {
+  let bucket_runoff = hydro.bucketmodel({
+    params: {
+      baseflow: 10, // m³/s
+      infiltration: 0.1 // mm/hour
+    },
+    args: {
+      agriculture: 0.3, // percent
+      barerock: 0.1, // percent
+      grassland: 0.2, // percent
+      forest: 0.3, // percent
+      urban: 0.1 // percent
+    },
+    data: {
+      rainfall: [10, 20, 30, 40, 50], // mm
+      evaporation: [5, 10, 15, 20, 25] // mm
+    }
+  });
+  //hydrolang.visualize.draw({ params: { type: 'json' }, data: bucket_runoff})
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+:::tip Tip
+More info about the hydro component in the [documentation page](https://uihilab.github.io/HydroLang/hydro_.html)
+:::
+

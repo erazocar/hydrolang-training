@@ -1,0 +1,129 @@
+---
+sidebar_position: 6
+---
+
+import { Sandpack } from "@codesandbox/sandpack-react";
+
+# Case Study: BMI Coupling
+
+In this case study we will show the coupling of two client-side applications through the BMI standard: HydroLang and HLM-Web. HLM (Hillslope Link Model) is a comprehensive forecasting model which mathematically represents a large system of ordinary differential equations organized following river network topology.
+
+The case study loads forcing precipitation data from preprocessed MRMS raifall product and and EPA NLDAS gridded data online data service through HydroLang and feed it in real time to the HLM model, from 28th Sep 2018 through the 10th Oct 2018 over the Clear Creek Watershed in Iowa.  
+
+## Purpose
+
+The case study is meant to highlight the capabilities that BMI brings towards resource coupling to enable a common ground in applications that are compliant with the semantics of the standard with no knowledge between applications.
+
+## Getting Started
+
+First, we instantiate the models required for the simulation. Both HydroLang and HLM contain BMI compliant layers that can be used for the case study.
+
+```js
+model = new HLM('gbl-cc.json');
+pMod = new BMIHLData('hydolang-bmi/config.json');
+```
+
+The HLM model grid system is based on the links spatially distributed throughout the entire watershed. For each grid system, the links are connected 
+
+## Creating configuration files
+
+Each model contains specific configuration files that have different purposes for steering the simulation. However, the named variable definitions are kept in place in order to effectively connect through both time and space.
+
+Example of HydroLang config file for the MRMS data:
+
+```json
+{
+    "modelName": "STAGEIV_DATA_CLEARCREEK",
+    "modelCode": "MC-2022-05-30-A",
+    "moduleName": "data",
+    "functionName": "retrieve",
+    "args": {
+        "link": "all",
+        "startDate": "2018-09-28 01:00",
+        "endDate": "2018-10-10 01:00"
+    },
+    "params": {
+        "source": "clearcreek",
+        "datatype": "req-data"
+    },
+    "duration": {
+        "defaultStep": 1,
+        "timeUnit": "h"
+    },
+    "inputVars": [
+        "input__1",
+        "input__2"
+    ],
+    "outputVars": [
+        "output__1",
+        "output__2"
+    ],
+    "units": {
+        "input": [
+            "mm",
+            "mm"
+        ],
+        "output": [
+            "mm",
+            "mm"
+        ]
+    }
+}
+```
+
+HLM config file
+
+```json
+{
+	"model": 252,
+	"modelName":"HLM - Constant Runoff Model",
+	"begin": "2018-09-28 00:00",
+	"end": "2018-10-10 00:00",
+	"keep": [433129,239143,395497],
+	"defaultStep": 3600,
+	"outputInterval" : 300,
+	"solver": {
+		"method": "RK4",
+		"firstStep": "null",
+		"limits"	: [1.000000e-6,0.000000e+00,0.000000e+00,0.000000e+00,0.000000e+00,0.000000e+00,0.000000e+00],
+		"err" : {
+			"abs": [1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6],
+			"rel": [1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6]}
+	},
+	"simulationFiles": {
+		"prm":"prm-cc-new.json",
+		"rvr":"rvr-cc.json",
+		"str":"str-cc-zeros.json",
+		"ics":"clear_creek_2018091300_2018092723.json"
+	},
+	"globalParams" : {
+		"note"		: "not all of these are necessary for all models",
+		"A"   		: 0.0, 
+		"A_r"		: 1.0,
+		"B"    		: 99.0, 
+		"beta"		: 0.02,
+		"exponent" 	: 3.0,   
+		"h_b" 		: 0.5, 
+		"k_3"       : 2.0425e-6, 
+		"lambda_1"	: 0.20,
+		"lambda_2"	: -0.1,
+		"q_r"		: 1.0,
+		"RC"		: 0.33,
+		"S_L"  		: 0.10,
+		"s_r"		: 1.0,
+		"u"			: 2.3148148148148148e-8,
+		"v_B"		: 0.75,
+		"v_g"		: 2.2917e-5,
+		"v_h"		: 0.1,
+		"v_r"		: 0.33
+	},
+	"reporting" : {}
+}
+```
+
+## Running a simulation
+Running a simulation using HLM-Web can be found [here](https://github.com/uihilab/HLM-Web). Once the precipitation data has been retrieved and ready to be spread throughout all the linkds, the HLM model solves over the entire basin and updates the discharge values at each link. Once the simulation has finished, the discharge values per link can be obtained and compared with observed flows at controlled stations.
+
+## Example
+A live example can be found [here](https://hydroinformatics.uiowa.edu/lab/tutorials/hydrolang/bmi.html)
+

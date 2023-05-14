@@ -1,0 +1,30 @@
+---
+sidebar_position: 2
+---
+
+import arch from '../static/img/hydrolang-arch.png'
+
+# Introduction
+
+## Overview
+
+HydroLang is a library that contains four modules, each tailored to specific needs in environmental sciences. Each library contains methods (functions) that follow a specific format to create a unique structure that can be easily replicated for new additions and formats. It is a library tailored towards:
+
+- Development of web applications through an intuitive API.
+- Used as a direct point of work for the development of scientific research in a web browser.
+- As part of larger web systems development.
+
+It has been developed with an object-oriented approach, in which each module contains methods that are directly called through JavaScript's object notation. The modules themselves can be used conjointly; however, they are loosely coupled and highly scalable, making it easy to learn and use directly from the web browser.
+
+HydroLang's function best practices have been updated to adopt JavaScript's ES6 object destructuring, in which major separations for functional arguments can be understood:
+
+- `params`  general configurations required for a function (e.g., proxy servers in the data functions, sources, etc.).
+- `args` specific configurations for a function (e.g., how many steps to execute in a function).
+- `data` data associated with the function run. Most of the functions deal with 1D arrays; however, ND arrays can also be used or other data structures.
+
+## Architecture
+
+<p align="center">
+<img src={arch} alt="hydrolang-architecture" width="600"/>
+</p>
+

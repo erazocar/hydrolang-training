@@ -1,0 +1,225 @@
+---
+sidebar_position: 5
+---
+
+# Case Study: Data Visualization Deck
+
+For this case study, we will create a simple dashboard with data retrieval, mapping capabilities, and data calculation all using the HydroLang framework using the functions highlighted throughout the period from 1950s to 2023.
+
+## Purpose
+
+This case study demonstrates how HydroLang can enable the development of fast web applications with real-time data retrieval and integration capabilities.
+
+## Getting Started
+
+We will have in an HTML document a few `div` elements that will function as holder spaces for our website development. Specifically, we will create a web page with a map that shows stations in the Salt Lake City area.
+
+The basic HTML elements that we need are the following:
+```html
+<body>
+    <div id="map"></div>
+    <div id="overlay">
+        <div id="content">
+            <div id="retrieved-data"></div>
+            <div id="stats-table"></div>
+            <button id="download-btn">Download Data</button>
+        </div>
+    </div>
+    <script src="src/main.js"></script>
+</body>
+```
+When we retrieve data from a specific station, an overlay will go over the web page showing a chart and statistics for the retrived dataset.
+
+Inside the `main.js` file, let's create an instance of the HydroLang library, as well as an array that will be used for storing data retrieved from a particular station.
+
+```js
+const hydro = new Hydrolang();
+window.clean_stations = [];
+```
+
+:::note Note
+Declaring a window object allows for a variable to be available everywehre in an application.
+:::
+
+We will also create a a function that will be used to execute the code we will write:
+
+```js
+async function main(){
+  //Execute functions here
+}
+main()
+```
+## Retrieving and Preprocessing Data
+
+We can initialize the map inside the main function using
+
+```js
+async function main() {
+  hydro.map.renderMap({ params: { maptype: "leaflet", lat: 40.75, lon: -111.87 }});
+}
+```
+
+Let's retrieve stations within a bounding box in south west SLC. We can do this by creating a function that will be called afterwards:
+
+```js
+async function retrieveData() {
+  let data = await hydro.data.retrieve({
+    params: { source: "waterOneFlow", datatype: "GetSitesByBoxObject" },
+    args: { 
+      sourceType: "USGS Daily Values",
+      east: -111.5592,
+      west: -112.037,
+      north: 41.07,
+      south: 40.5252
+    }
+  });
+  return data;
+}
+```
+We can create another function that will call the retrieveData function and transform it so that we can use it to create markers on our map. Additionally, we will create popups for each of the stations that display the name, location, and the variable it serves.
+
+```js
+async function renderLocations() {
+  let raw_stations = hydro.data.transform({
+    params: { save: "site" },
+    args: { type: "JSON" },
+    data: await retrieveData()
+  });
+
+  for (let station of raw_stations) {
+    //...
+  }
+```
+
+We can extract the necessary information from the retrieved stations to create popups for each station on the map. With the cleaned station data, we can then populate the map with the necessary markers.
+
+```js
+renderLocations(){
+  //...
+  for (let station of raw_stations) {
+    let stgProps = {};
+    stgProps.name = station.siteInfo.siteName;
+    stgProps.location = station.siteInfo.geoLocation.geogLocation;
+    stgProps.siteCode = station.siteInfo.siteCode;
+    stgProps.variable = station.seriesCatalog.series.variable;
+    clean_stations.push(stgProps);
+  }
+
+  for (let station of clean_stations) {
+    //...
+  }
+  
+```
+
+## Visualizing Stations on the Map
+
+We can add a popup to each station marker that displays important information about the station, such as its name and location. Additionally, we can include a button within the popup that, when clicked, retrieves the station's time series data for the specified case study timeframe.
+
+```js
+  for (let station of clean_stations) {
+    const button = document.createElement("button");
+    button.textContent = "Retrieve Data";
+
+    button.addEventListener("click", function () {
+      retrieveValues(station.siteCode);
+    });
+    const popUpContent = document.createElement("div");
+    popUpContent.innerHTML = `<h4>Station Information</h4>
+    <ul>
+      <li><strong>Name:</strong>${station.name}</li>
+      <li><strong>Latitude:</strong>${station.location.latitude}</li>
+      <li><strong>Longitude:</strong>${station.location.longitude}</li>
+      <li><strong>Variable:</strong>${
+        station.variable && station.variable.variableName
+          ? station.variable.variableName
+          : "NV"
+      }</li>
+    </ul>`;
+    popUpContent.appendChild(button);
+```
+
+The popup variable contains html tag elements that can be rendered as dynamic text for each station. We are also calling a function with the newly created button to download the data for that particular station. To render the maps on screen, we will be calling the `Layers` function for each station.
+
+```js
+async function renderLocations() {
+  //...
+  for (let station of clean_stations) {
+    //...
+    hydro.map.Layers({
+      args: {
+        type: "marker",
+        name: `${station.siteCode}`,
+        popUp: popUpContent
+      },
+      data: [
+        JSON.parse(station.location.latitude),
+        JSON.parse(station.location.longitude)
+      ]
+    });
+  }
+}
+```
+
+## Creating Charts and Stats on Screen
+
+We can now retrieve data for each station if we click on them. To do this, we use the `retrieveValues` function:
+
+```js
+async function retrieveValues(site) {
+  //Display properties
+
+  let usgs_query = {
+    source: "usgs",
+    datatype: "daily-values",
+    transform: true
+  };
+  let args_query = {
+    site: site,
+    format: "json",
+    startDt: "1950-01-01",
+    endDt: "2023-01-01"
+  };
+
+  let usgs_data = await hydro.data.retrieve({
+    params: usgs_query,
+    args: args_query
+  });
+  hydro.visualize.draw({
+    params: { type: "chart", id: "retrieved-data" },
+    data: usgs_data
+  });
+  hydro.visualize.draw({
+    params: { type: "table", id: "stats-table" },
+    data: hydro.analyze.stats.basicstats({ data: usgs_data })
+  });
+  //Display properties
+}
+```
+
+With this, we are finished with the case study. There only thing missing is calling the `renderLocations` function inside `main`.
+
+```js
+async function main() {
+  hydro.map.renderMap({
+    params: { maptype: "leaflet", lat: 40.75, lon: -111.87 }
+  });
+  renderLocations();
+}
+
+main();
+```
+
+:::note Note
+We have used `async` throughout the case study in the functions that have to wait for results to return from servers. This is an easier way to deal with asynchronous calls, however you can also use `Promises` and chaining methods together.
+:::
+
+You can update the playground below and see results of the case study.
+
+<br></br>
+
+<iframe src="https://codesandbox.io/embed/case-study-1-dimbnw?codemirror=1&fontsize=14&hidenavigation=1&theme=light"
+     width="100%" height="300px" border="0" border-radius="4px"
+     title="case-study-1"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>

@@ -1,0 +1,93 @@
+---
+sidebar_position: 2
+---
+
+import { Sandpack } from "@codesandbox/sandpack-react";
+
+# Visualize
+
+The visualize module contains functions for drawing various charts, such as columns, bars, and pies, as well as tables using the Google Charts library.
+
+## Exercise 1
+
+Let’s create a simple example for rendering a bar and line graph using the following commands:
+
+```js
+const hydrolang = new Hydrolang();
+hydrolang.visualize.draw({
+  params: { type: "chart" },
+  data: [1, 2, 3, 4, 5],
+});
+```
+
+The default drawing type from the library is set to be a line chart. We can change this by passing an additional argument, as follows:
+
+```js
+hydrolang.visualize.draw({
+  params: { type: "chart" },
+  args: { charttype: "column" },
+  data: [1, 2, 3, 4, 5],
+});
+```
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `const hydrolang = new Hydrolang();
+const main = async () => {
+  //Paste the chart code here
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+:::note Note
+The visualize module can handle n-dimensional arrays to be passed as data, and it considers the first position to be date formats as strings, if available. The parameters used for rendering are dealt by HydroLang, but can be modified by the user if required.
+:::
+
+Let's see how we can use these tools in the next modules.
+
+:::tip Tip
+More info about the data module in the [documentation page](https://uihilab.github.io/HydroLang/visualize.html)
+:::

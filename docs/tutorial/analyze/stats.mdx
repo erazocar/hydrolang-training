@@ -1,0 +1,196 @@
+---
+sidebar_position: 1
+---
+
+import { Sandpack } from "@codesandbox/sandpack-react";
+
+# Stats
+
+The stats component offers simple and advanced methods for evaluating data statistically. To demonstrate the functionality of the module, let's generate some random data using the `generateRandomData()` function from the stats module.
+
+## Exercise 1
+
+We can use the following code to generate 1000 data points between 0 and 100:
+
+```js
+const hydrolang = new Hydrolang();
+const {hydro, stats, nn} = hydrolang.analyze;
+let data = stats.generateRandomData(1000);
+```
+Now, let's find the basic statistics for the sample data using the `basicstats()` function:
+
+```js
+let basicStats = stats.basicstats({data})
+```
+
+By opening the basicStats variable, you can see important information about the data relevant for decision making, such as min, max, total sum, mean, median, standard deviation, variance, skewness, and kurtosis.
+
+:::note Note
+You can also visualize the results using
+```js
+hydrolang.visualize.draw({ params: { type: 'table' }, data: basicStats})
+```
+:::
+
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `
+const hydrolang = new Hydrolang();
+const {hydro, stats, nn} = hydrolang.analyze;
+const main = async () => {
+  let data = stats.generateRandomData(1000);
+  let basicStats = stats.basicstats({data});
+  //hydrolang.visualize.draw({ params: { type: 'table' }, data: basicStats})
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+## Exercise 2
+
+To evaluate the frequency distribution of the generated data, you can use the following
+
+```js
+let frequency = stats.frequency({data})
+```
+
+Next, let's analyze the dataset by identifying outliers falling within the first (25%) and second (75%) quartile.
+
+```js
+let quartile = stats.interoutliers({data}) 
+```
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `
+const hydrolang = new Hydrolang();
+const {hydro, stats, nn} = hydrolang.analyze;
+const main = async () => {
+  let data = stats.generateRandomData(1000);
+  let frequency = stats.frequency({data});
+  let quartile = stats.interoutliers({data}) ;
+  //hydrolang.visualize.draw({ params: { type: 'json' }, data: quartile})
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+:::note Note
+To use this function with different quartile ranges, you can simply pass an object with the desired ranges as the params argument when calling the function. For example, if you wanted to use quartiles 0.1 and 0.9 instead of the default 0.25 and 0.75, you could call the function like this:
+
+```js
+let params = { q1: 0.1, q2: 0.9 };
+const filteredData = stats.interoutliers({ params, data });
+```
+
+And remember, always keep your data close and your outliers closer!
+:::
+
+## Exercise 3
+
+Moving further, we can apply a commonly used function for time series analysis, flood forecasting, and other signaling applications - fast Fourier transforms. To see any significant changes in the data, we can use the fastFourier() function:
+
+```js
+let fft = stats.fastFourier({data})
+```
+
+This is an example usage of complex function implementation using libraries like TensorFlow.js. There are other types of signaling functions applicable to the field of hydrology that can be further implemented into the framework.
+
+:::note Note
+Sometimes the Tensorflow library loads better locally rather than in online platforms.
+:::
+
+:::tip Tip
+More info about the stats component in the [documentation page](https://uihilab.github.io/HydroLang/stats.html)
+:::
+
+
+
+
+
+

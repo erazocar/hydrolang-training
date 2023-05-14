@@ -1,0 +1,174 @@
+---
+sidebar_position: 4
+---
+
+import { Sandpack } from "@codesandbox/sandpack-react";
+
+# Maps
+
+HydroLang contains two visualization modules: maps and visualize. The maps module includes functions for generating maps on the fly using simple commands, leveraging the Google Maps and Leaflet libraries. To create a map, generate a new instance of the library by calling:
+
+```js
+const hydrolang = new Hydrolang();
+hydrolang.map.renderMap({ params: { maptype: "leaflet", lat: 40.75, lon: -111.87, }});
+```
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `const hydrolang = new Hydrolang();
+const main = async () => {hydrolang.map.renderMap({ params: { maptype: "leaflet", lat: 40.75, lon: -111.87, }});
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+:::info Info
+The Leaflet library is free of charge and requires nothing for its usage. If you would like to use the Google Maps library, you need to create an account and follow the instructions on the developers' page. The instruction will call the map library and allow it to be available for usage.
+:::
+
+Let’s draw on the map using drawing tools available using the following command:
+
+```js
+hydrolang.map.Layers({ args: { type: "draw" }});
+```
+
+How can we draw markers using this interface? Well we can do it by either drawing on screen or passing through the `Layers` method. We can do the latter by doing:
+
+```js
+hydrolang.map.Layers({ args: { type: "marker", output: "myStation" }, data: [40.71, -111.96]});
+```
+
+We can also draw geoJSON and KML files using the `Layers` method.
+
+```js
+hydrolang.map.Layers({ args: { type: "geojson", output: "mygeoJSON" }, data:
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-111.8910, 40.7608]
+      }
+    }
+  ]
+}
+});
+
+```
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `const hydrolang = new Hydrolang();
+const main = async () => {await hydrolang.map.renderMap({ params: { maptype: "leaflet", lat: 40.75, lon: -111.87, }});
+hydrolang.map.Layers({ args: { type: "draw" }});
+hydrolang.map.Layers({ args: { type: "marker", name: "myStation" }, data: [40.71, -111.96]});
+hydrolang.map.Layers({ args: { type: "geojson", name: "mygeoJSON" }, data:
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-111.8910, 40.7608]
+      }
+    }
+  ]
+}
+});
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+:::tip Tip
+More info about the data module in the [documentation page](https://uihilab.github.io/HydroLang/map.html)
+:::

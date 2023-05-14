@@ -1,0 +1,268 @@
+---
+sidebar_position: 1
+---
+
+import { Sandpack } from "@codesandbox/sandpack-react";
+
+# Data
+
+HydroLang is a powerful tool that allows users to retrieve, clean, transform, upload, and download data. The data module is designed to provide easy access to data sources so users can choose the data that best suits their needs.
+
+HydroLang connects to various data sources around the world through different formats, data requests, and data sources using semantically-driven inputs. The available data sources include:
+
+|Name|	Description|
+|---|---|
+|AEMET|	Spanish Meteorological Agency|
+|CUASHI HydroShare and WaterOneFlow | Open source tools for sharing hydrologic data and models|
+|EAUK|	Environment Agency of the United Kingdom|
+|EPA|	United States Environmental Protection Agency|
+|FEMA|	Federal Emergency Management Agency|
+|IFIS	|Iowa Flood Information System|
+|MeteoIT|	Italian Meteorological Service|
+|MeteoStat|	Weather Data Hosting Service|
+|NOAA	|National Oceanic and Atmospheric Administration (United States)|
+|USGS|	United States Geological Survey|
+|World Bank | Global climeteology Projections|
+
+:::info Info
+Adding endpoints to HydroLang, for each data source or new data source, is simple enough that the users can do so if required. Please check the documentation for more info.
+:::
+
+These sources offer different types of input forcings for hydrological modeling, including streamflow, rainfall, and evapotranspiration, among others.
+
+To submit a request, each data source requires specific variable definitions as parameters and arguments fed into the endpoint.
+
+## Exercise 1
+
+Let's retrieve daily record data from all available stations managed by USGS through CUAHSI data sources in the Salt Lake City Area. Define a variable named params to retrieve data from WaterOneFlow using the "Get Sites by Box Object" function.
+
+```js
+let params = { source: "waterOneFlow", datatype: "GetSitesByBoxObject" }
+```
+
+:::info Info
+The params object contains information about the data source, data type. These are the main parameters used to search within the data source endpoints, specify the data type within the data source. Additionally a proxy server can be passed as a resource in case there is need for one.
+:::
+
+Let's define another variable called args, which will contain specific information about the location from which we want to retrieve data.
+
+```js
+let args = {
+    sourceType: "USGS Daily Values",
+    east: -111.38,
+    west: -112.46,
+    north: 41.07,
+    south: 40.19
+}
+```
+
+:::caution Caution
+The `args` object contains information required by the source for the given data type. Users must explore the available source information to determine what information is needed for a query. It is essential for users to understand how to query an API correctly to avoid encountering confusing errors.
+:::
+
+With these two parameters set, we can query the location as follows:
+
+```js
+let availableStations = await hydro.data.retrieve({params, args})
+```
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `const hydrolang = new Hydrolang();
+const main = async () => {
+  let params = { source: "waterOneFlow", datatype: "GetSitesByBoxObject" }
+  let args = {
+    sourceType: "USGS Daily Values",
+    east: -111.38,
+    west: -112.46,
+    north: 41.07,
+    south: 40.19
+  }
+  let availableStations = await hydrolang.data.retrieve({params, args})
+  hydrolang.visualize.draw({ params: { type: 'json' }, data: availableStations })
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+Depending on the the number of requests sent to the server at the given time, it can take up to 5 seconds to retrieve the data.
+
+:::tip Tip
+Tip: To handle multiple objects with the same naming conventions, use object destructuring in your JavaScript code. This means you only need to pass params and args, instead of key-value pairs. And if you're worried about running asynchronous code, don't be scared! Just use the keyword 'await' to wait for an execution to complete before continuing with the program. Since we're retrieving data from an external server, it makes sense to 'wait', right? 
+:::
+
+We can see that there is a lot of information pertaining to the retrieved data. Let's use the transform function to clean it up. Let's keep only the station data we want to use.
+
+```js
+let station_data = hydrolang.data.transform({
+    params: { save: "site"}, 
+    args: { type: 'JSON'}, 
+    data: availableStations
+})
+```
+By doing this, we are declaring the stations to be saved as a JSON object so we can continue exploring more. We can see that this is giving us information about the stations and data availability, but not the data itself!
+
+## Exercise 2
+
+Let’s select one of the stations to get the information using another source, for example, the USGS API. We can do this by creating a new request that queries a given station using the following two variables.
+
+```js
+let usgs_query = {
+    source: "usgs",
+    datatype: "daily-values",
+    transform: true
+};
+
+let args_query = {
+    site: '10010000',
+    format: 'json',
+    startDt: '1900-01-01',
+    endDt: '2023-01-01'
+};
+```
+
+We use once again the retrieve function which with an optional transform parameter for on the fly data transformation for further manipulation.
+
+
+```js
+let usgs_data = await hydrolang.data.retrieve({ params: usgs_query, args: args_query })
+```
+
+:::note Note
+The transformation is done considering the structure of most responses from the data sources included within HydroLang. If you would like to see the structure before any manipulation do not use the parameter.
+:::
+
+We can visualize the data using the visualize function as we did before:
+
+```js
+hydrolang.visualize.draw({ params: { type: 'chart' }, data: usgs_data })
+```
+
+Now, we have transformed the data into a JavaScript array that we can further use to manipulate information. We can either use this data as is or download it to our local machines using the download function available in the data module. We can do so by using:
+
+```js
+hydrolang.data.download({ args: { type: 'CSV' }, data: usgs_data })
+```
+
+<Sandpack 
+template="vanilla"
+options={{
+    showTabs: true,
+    showLineNumbers: true,
+    showInlineErrors: true,
+    externalResources: ["https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"]
+}}
+files={{
+  'src/index.js': {code: ``, hidden: true, active: false },
+    'src/main.js': {code: `const hydrolang = new Hydrolang();
+const main = async () => {
+  let usgs_query = {
+      source: "usgs",
+      datatype: "daily-values",
+      transform: true
+  };
+  let args_query = {
+      site: '10010000',
+      format: 'json',
+      startDt: '2000-01-01',
+      endDt: '2023-01-01'
+  };
+  let usgs_data = await hydrolang.data.retrieve({ params: usgs_query, args: args_query })
+  hydrolang.visualize.draw({ params: { type: 'chart', id:'retrieved-values' }, data: usgs_data })
+};
+main();`, hidden: false, active: true},
+    'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/hydrolang@1.1.7/hydrolang.js"></script>
+    <title>My HydroLang Example</title>
+  </head>
+  <body>
+    <script src="src/main.js"></script>
+  </body>
+</html>`,
+'package.json':{code: `{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}`, hidden: true, active: false
+},
+}}
+/>
+
+<br></br>
+
+:::note Note
+We can download XML, CSV, and JSON formats, and we can assign a specific naming convention to the downloaded file. Otherwise, a random name will be generated using the format YYMMDDHHMM.
+:::
+
+:::tip Tip
+More info about the data module in the [documentation page](https://uihilab.github.io/HydroLang/data.html)
+:::
+
+
+
+
+
+
+
+
+
